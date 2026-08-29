@@ -1,0 +1,2 @@
+export function getMinimumNextStake(currentStake: number): number { if (!Number.isFinite(currentStake) || currentStake <= 0) return 5; if (currentStake < 50) return currentStake + 5; if (currentStake < 200) return currentStake + 10; if (currentStake < 1000) return currentStake + 25; return currentStake + 50; }
+export function formatMoney(value: number) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value); }

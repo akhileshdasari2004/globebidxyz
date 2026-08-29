@@ -1,0 +1,2411 @@
+# PRD — Interactive Globe Bidding Platform
+
+**Working title:** GlobeBid
+**Product type:** Viral interactive advertising marketplace
+**Platform:** Web
+**Experience:** Single-page application
+**Frontend:** Next.js + React + Three.js / React Three Fiber
+**Backend:** Supabase
+**Payments:** Dodo Payments
+**Primary device:** Desktop, fully responsive on mobile
+**Design direction:** Apple.com × interactive 3D globe × Outbid-style bidding
+
+---
+
+# 1. Product Vision
+
+Create the most visually impressive way on the internet for a startup, creator, brand, or individual to advertise themselves.
+
+The entire website is one interactive 3D Earth.
+
+Every country can be claimed.
+
+A visitor can:
+
+**Spin the globe → choose a country → see who controls it → outbid them → pay → instantly place their logo on that country.**
+
+No dashboards.
+
+No complicated signup.
+
+No feeds.
+
+No multiple pages.
+
+No unnecessary navigation.
+
+The globe itself is the product.
+
+---
+
+# 2. Core Product Idea
+
+Every country on Earth is an advertising position.
+
+Each country has its own leaderboard.
+
+The startup/person with the **highest total stake** on that country controls it.
+
+Their:
+
+* logo
+* brand name
+* URL
+* country ownership
+* amount staked
+
+become visible publicly.
+
+Someone else can outbid them at any time.
+
+The current owner can later reclaim the country by topping up their previous contribution.
+
+### Example
+
+USA:
+
+Current owner:
+
+**Acme AI**
+
+Total stake:
+
+**$100**
+
+Minimum required to take #1:
+
+**$105**
+
+Another company pays $105.
+
+Now:
+
+**NewCo owns USA — $105**
+
+Acme still retains its historical $100 stake.
+
+If Acme wants USA again:
+
+Acme only needs to add:
+
+**$10**
+
+Their total becomes:
+
+**$110**
+
+Acme owns USA again.
+
+This creates a continuous competitive loop instead of every bid being a completely new purchase.
+
+---
+
+# 3. Product Positioning
+
+The product should NOT describe itself as gambling.
+
+The product is selling:
+
+> **Digital advertising placement on an interactive world map.**
+
+Payment purchases visibility.
+
+There are:
+
+* no prizes
+* no random winner
+* no cash payout
+* no betting odds
+* no financial return
+
+The highest advertiser receives the most prominent placement.
+
+Use language such as:
+
+**Claim**
+
+**Own the spotlight**
+
+**Take over**
+
+**Outbid**
+
+**Control**
+
+**Stake**
+
+Avoid language such as:
+
+**Bet**
+
+**Wager**
+
+**Jackpot**
+
+**Win money**
+
+---
+
+# 4. Main Tagline
+
+Primary:
+
+# Own a piece of the internet.
+
+Secondary:
+
+**Claim a country. Put your brand on the world. Anyone can take it from you.**
+
+CTA:
+
+**Explore the globe**
+
+Alternative viral tagline:
+
+# The world is for sale.
+
+Subtext:
+
+**Pick a country. Claim it. Put your logo on it. Stay there until someone wants it more.**
+
+---
+
+# 5. Product Principles
+
+## Principle 1 — The Globe Is Everything
+
+The user should immediately see Earth.
+
+No conventional hero section followed by a product.
+
+The globe **is the hero section**.
+
+---
+
+## Principle 2 — Zero Learning Curve
+
+A visitor should understand the product within five seconds.
+
+They see:
+
+**India — owned by Acme — $125**
+
+and:
+
+**Claim for $130**
+
+The product explains itself.
+
+---
+
+## Principle 3 — No Account Before Payment
+
+Do not force signup.
+
+Do not show:
+
+> Create account
+
+Instead:
+
+1. Select country
+2. Add brand
+3. Pay
+4. Done
+
+Email comes from checkout.
+
+Account functionality can be added later if necessary.
+
+---
+
+## Principle 4 — Every Interaction Should Feel Valuable
+
+Country selection should feel almost like selecting an Apple product.
+
+Use:
+
+* smooth camera movements
+* soft easing
+* glass surfaces
+* subtle haptics on mobile
+* glow
+* shadows
+* spring animations
+* beautiful logo transitions
+* cinematic globe rotation
+
+No noisy gaming UI.
+
+---
+
+# 6. Single-Page Structure
+
+There should technically be only **one main page**.
+
+Everything else appears as:
+
+* sheets
+* floating panels
+* modals
+* overlays
+
+URL:
+
+`/`
+
+The complete application exists here.
+
+---
+
+# 7. Default Screen
+
+Viewport:
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ GlobeBid                                  $18,420 claimed  ☰ │
+│                                                              │
+│                                                              │
+│                      [ 3D EARTH ]                            │
+│                                                              │
+│                logos visible on countries                    │
+│                                                              │
+│                                                              │
+│            Own a piece of the internet.                      │
+│        Claim a country. Put your brand on Earth.             │
+│                                                              │
+│                [ Explore the globe ]                         │
+│                                                              │
+│  47 countries claimed · 182 brands · 12 people watching     │
+└──────────────────────────────────────────────────────────────┘
+```
+
+The globe occupies approximately:
+
+**70–80% of visual attention.**
+
+---
+
+# 8. Globe Experience
+
+Earth should feel premium rather than like Google Maps.
+
+## Visual treatment
+
+Dark mode default.
+
+Background:
+
+`#000000`
+
+Earth:
+
+* dark ocean
+* subtle atmospheric glow
+* thin country boundaries
+* minimal lighting
+* premium material shaders
+* subtle stars or completely black environment
+* no unnecessary geography labels
+
+Apple-like restraint.
+
+---
+
+# 9. Globe Rotation
+
+When idle:
+
+Earth slowly rotates automatically.
+
+Approximately:
+
+**1 revolution every 80–120 seconds.**
+
+As soon as user interacts:
+
+Auto rotation pauses.
+
+Interactions:
+
+Desktop:
+
+* drag → rotate
+* scroll → zoom
+* click → select country
+
+Mobile:
+
+* swipe → rotate
+* pinch → zoom
+* tap → select country
+
+After approximately 10 seconds without interaction:
+
+slow rotation resumes.
+
+---
+
+# 10. Country Hover State
+
+Desktop pointer over country:
+
+Country surface slightly lifts/glows.
+
+Floating tooltip:
+
+```text
+🇯🇵 Japan
+
+Linear
+$85
+
+Claim for $90 →
+```
+
+Unclaimed:
+
+```text
+🇳🇿 New Zealand
+
+Unclaimed
+
+Claim for $5 →
+```
+
+Do not immediately open a large card.
+
+Hover remains extremely lightweight.
+
+---
+
+# 11. Country Selection
+
+When user clicks India:
+
+The globe smoothly rotates India toward the center.
+
+Camera gently zooms.
+
+India receives a halo.
+
+A floating Apple-style glass card slides up.
+
+```text
+India 🇮🇳
+
+Owned by
+
+[LOGO]  Cursor
+
+cursor.com
+
+$245 staked
+
+42 clicks
+
+Claim India
+$250
+
+[ Take over for $250 ]
+```
+
+No page refresh.
+
+No navigation.
+
+---
+
+# 12. Logo Rendering on Globe
+
+Owned countries visibly show the owner's identity.
+
+There are two layers.
+
+### Far zoom
+
+Show:
+
+* brand logo
+* subtle country color/glow
+
+Do not display text.
+
+### Close zoom
+
+Show:
+
+* logo
+* brand name
+* amount
+
+Example:
+
+```text
+[ ▲ ]
+
+VERCEL
+$430
+```
+
+---
+
+# 13. Small Countries
+
+Countries like:
+
+* Singapore
+* Monaco
+* Malta
+* Luxembourg
+
+cannot reliably contain logos geographically.
+
+Use floating pins attached to the actual country coordinates.
+
+Example:
+
+```text
+      ○──── [logo]
+```
+
+Clicking the pin selects the country.
+
+---
+
+# 14. Brand Logo Placement
+
+The winning logo should not distort to fill the physical country polygon.
+
+Instead:
+
+Anchor the logo around the country's visual centroid.
+
+Logo sits slightly above Earth.
+
+Think of it as a premium physical badge attached to Earth.
+
+This produces much better readability.
+
+---
+
+# 15. Claim Flow
+
+This is the most important UX flow.
+
+User selects:
+
+**Germany**
+
+Panel:
+
+```text
+Germany 🇩🇪
+
+Current #1
+
+[LOGO]
+Supabase
+$75
+
+Your total stake
+
+$ 80
+
+$80 takes Germany.
+
+[ Claim Germany ]
+```
+
+Click:
+
+**Claim Germany**
+
+Expand the same card.
+
+---
+
+# 16. Brand Information
+
+Fields:
+
+### Website / X profile
+
+Placeholder:
+
+`yourstartup.com or @username`
+
+After URL entered:
+
+server attempts to retrieve:
+
+* favicon
+* OpenGraph logo
+* OpenGraph title
+* description
+
+Show preview:
+
+```text
+[LOGO]
+
+Acme AI
+acme.ai
+
+Build software with AI.
+```
+
+Allow editing:
+
+**Logo**
+
+**Brand name**
+
+**URL**
+
+**Short tagline**
+
+Tagline maximum:
+
+**80 characters**
+
+---
+
+# 17. Logo Upload
+
+Accept:
+
+* PNG
+* JPG
+* WebP
+* SVG
+
+Recommended:
+
+**1:1**
+
+Maximum:
+
+**2 MB**
+
+Automatically create a square preview.
+
+Store in:
+
+**Supabase Storage**
+
+Logo should be moderated before/after publication depending on risk controls.
+
+---
+
+# 18. Bid Input
+
+Default amount should automatically equal:
+
+`minimum amount required to take #1`
+
+Example:
+
+Current owner:
+
+`$75`
+
+Minimum increment:
+
+`$5`
+
+Default:
+
+`$80`
+
+Controls:
+
+```text
+Your stake
+
+−     $80     +
+
+$80 takes #1
+
+[ Continue ]
+```
+
+Allow custom bid entry.
+
+---
+
+# 19. Recommended Bidding Rules
+
+## Starting price
+
+Every unclaimed country:
+
+**$5**
+
+This matches the low-friction viral behaviour seen in similar products.
+
+---
+
+## Minimum increment
+
+For MVP:
+
+```text
+Current price < $50      → +$5
+$50–$199                 → +$10
+$200–$999                → +$25
+$1,000+                  → +$50
+```
+
+This is preferable to forcing every takeover to be 1.5×.
+
+A 1.5× system becomes expensive extremely quickly.
+
+This model still creates competition while keeping countries liquid.
+
+---
+
+# 20. Cumulative Stake
+
+Each advertiser retains their historical contribution to a specific country.
+
+Example:
+
+```text
+Company A → $50
+Company B → $60
+Company A → adds $15
+```
+
+Totals:
+
+```text
+Company A → $65
+Company B → $60
+```
+
+Company A becomes #1.
+
+This creates:
+
+* retention
+* repeat purchases
+* rivalry
+* lower friction for previous owners
+* more long-term revenue
+
+---
+
+# 21. Payment Philosophy
+
+Payments are **non-refundable advertising purchases** except:
+
+* duplicate payment
+* technical payment error
+* legal requirement
+* merchant-approved refund
+
+Getting outbid does NOT create a refund.
+
+The user already purchased advertising exposure during the period where they held the placement.
+
+Clear microcopy before checkout:
+
+> Your payment purchases advertising placement. Another advertiser may later outbid your total stake. Previous contributions remain attached to your brand and can be topped up to reclaim the country.
+
+---
+
+# 22. Dodo Payments Integration
+
+Use:
+
+**Dodo Payments one-time payment**
+
+Preferred checkout UX:
+
+### Dodo Overlay Checkout
+
+This preserves the single-page experience.
+
+The visitor should ideally never feel like they left the globe.
+
+If Overlay Checkout creates implementation limitations, use Dodo Checkout Sessions.
+
+Dodo currently supports Checkout Sessions, overlay checkout and inline checkout for one-time purchases. Checkout Sessions are created server-side, and successful payment should be trusted only after receiving the signed payment webhook.
+
+---
+
+# 23. Payment Flow
+
+```text
+Country selected
+       ↓
+Brand information
+       ↓
+Bid amount
+       ↓
+Create pending bid
+       ↓
+Server calculates minimum price again
+       ↓
+Create Dodo checkout session
+       ↓
+Payment
+       ↓
+Dodo webhook
+payment.succeeded
+       ↓
+Server validates payment
+       ↓
+Atomic bid transaction
+       ↓
+Determine country leader
+       ↓
+Update ownership
+       ↓
+Supabase Realtime event
+       ↓
+Everyone watching sees ownership change
+```
+
+CRITICAL:
+
+The browser returning from Dodo must **never** determine successful ownership.
+
+Only:
+
+`payment.succeeded`
+
+webhook can activate the bid.
+
+---
+
+# 24. Payment Race Condition
+
+Important scenario:
+
+Current USA price:
+
+`$100`
+
+Person A starts checkout for:
+
+`$105`
+
+Person B starts:
+
+`$110`
+
+B pays first.
+
+USA becomes:
+
+`$110`
+
+A then pays $105.
+
+A's payment remains a legitimate stake.
+
+Their total becomes $105.
+
+But they are NOT #1.
+
+Success screen:
+
+```text
+Your $105 stake is live.
+
+Someone moved faster and currently holds USA at $110.
+
+Add $10 to take the lead.
+
+[ Take USA for $115 ]
+```
+
+Never silently overwrite B.
+
+---
+
+# 25. Payment Metadata
+
+Every Dodo payment should include metadata:
+
+```text
+bid_id
+country_code
+advertiser_id
+brand_id
+expected_amount
+currency
+checkout_version
+```
+
+Webhook looks up:
+
+`bid_id`
+
+before doing anything.
+
+---
+
+# 26. Idempotency
+
+Dodo webhook handlers must be idempotent.
+
+Store:
+
+`webhook_id`
+
+If webhook has already been processed:
+
+return:
+
+`200 OK`
+
+without repeating bid allocation.
+
+Dodo webhooks use signed payloads and may deliver payment state changes asynchronously, so event processing must be idempotent.
+
+---
+
+# 27. Payment Events
+
+Listen to:
+
+```text
+payment.succeeded
+payment.failed
+payment.processing
+payment.cancelled
+
+refund.succeeded
+refund.failed
+
+dispute.opened
+dispute.won
+dispute.lost
+```
+
+Dodo exposes these payment/refund/dispute lifecycle events through webhooks.
+
+---
+
+# 28. Successful Takeover Animation
+
+This interaction should be extremely memorable.
+
+Payment completes.
+
+Return to globe.
+
+Earth rotates toward purchased country.
+
+Old logo:
+
+* fades
+* slightly shrinks
+* disappears into country
+
+Country flashes softly.
+
+New logo rises out of Earth.
+
+Small particles/glow.
+
+Text:
+
+# You own India.
+
+Subtext:
+
+**Until somebody wants it more.**
+
+Then:
+
+```text
+[ View on globe ]
+
+[ Share takeover ]
+```
+
+---
+
+# 29. Viral Share
+
+Generate share card automatically.
+
+Example:
+
+```text
+🌍 INDIA HAS A NEW OWNER
+
+[ACME LOGO]
+
+Acme AI just claimed India
+for $125.
+
+Think you can take it?
+
+globebid.com/india
+```
+
+Share:
+
+**X**
+
+**Copy link**
+
+Direct links can still use the SPA:
+
+`/?country=IND`
+
+or clean route that resolves back into the same application state.
+
+The site remains visually single-page.
+
+---
+
+# 30. Ownership Change
+
+If someone takes India:
+
+Existing owner can receive an email:
+
+```text
+Subject:
+Someone just took India from you 🇮🇳
+
+New owner:
+Linear
+
+Their stake:
+$145
+
+Your stake:
+$120
+
+You need only $30 more to reclaim India.
+
+[ Take India back ]
+```
+
+This is one of the strongest retention loops in the product.
+
+---
+
+# 31. Live Activity
+
+Keep this subtle.
+
+Bottom-left floating pill:
+
+```text
+● LIVE
+
+Linear claimed Germany · $90
+12s ago
+```
+
+Then disappears.
+
+Next event rotates in.
+
+Click:
+
+opens compact activity sheet.
+
+Do NOT keep a giant permanent activity feed.
+
+---
+
+# 32. Global Stats
+
+At the top of the experience:
+
+```text
+🌍 87 claimed
+
+$24,840 staked
+
+● 136 watching
+```
+
+Minimal.
+
+These numbers provide:
+
+* social proof
+* urgency
+* credibility
+
+---
+
+# 33. Leaderboard
+
+Do not show a huge leaderboard on the main interface.
+
+Small trophy icon:
+
+`🏆`
+
+Click opens side sheet.
+
+Tabs:
+
+### Countries
+
+Highest-valued countries.
+
+### Brands
+
+Highest total advertisers.
+
+Example:
+
+```text
+WORLD POWERS
+
+1  Cursor      $3,850
+2  Linear      $2,410
+3  Vercel      $1,950
+4  Supabase    $1,420
+```
+
+This is optional secondary behaviour.
+
+The globe remains dominant.
+
+---
+
+# 34. Search
+
+Search icon:
+
+`⌕`
+
+Input:
+
+```text
+Search countries or brands
+```
+
+Typing:
+
+`India`
+
+Results:
+
+```text
+🇮🇳 India
+Owned by Cursor
+$210
+```
+
+Click result:
+
+globe rotates to India.
+
+---
+
+# 35. Country Colours
+
+Unclaimed:
+
+almost black / graphite.
+
+Claimed:
+
+slightly illuminated.
+
+Hot / expensive country:
+
+slightly brighter.
+
+Do NOT make the Earth rainbow-coloured.
+
+Brands are represented primarily through their logos.
+
+Apple aesthetic requires restraint.
+
+---
+
+# 36. Visual Design System
+
+## Background
+
+Pure black:
+
+`#000000`
+
+Secondary surface:
+
+`rgba(28,28,30,0.72)`
+
+Glass effect:
+
+```text
+backdrop-filter: blur(30px)
+```
+
+Border:
+
+```text
+rgba(255,255,255,0.10)
+```
+
+---
+
+# 37. Typography
+
+Use:
+
+**Inter**
+
+or Apple's system stack:
+
+```text
+-apple-system,
+BlinkMacSystemFont,
+"SF Pro Display",
+"Inter",
+sans-serif
+```
+
+Do NOT ship Apple-owned fonts separately.
+
+Headlines:
+
+large and highly spaced.
+
+Example:
+
+```text
+Own a piece
+of the internet.
+```
+
+Desktop:
+
+64–80px.
+
+Mobile:
+
+42–52px.
+
+---
+
+# 38. Buttons
+
+Primary:
+
+white pill.
+
+```text
+background: white
+color: black
+border-radius: 999px
+```
+
+Example:
+
+**Claim India · $125**
+
+Secondary:
+
+glass pill.
+
+No gradients unless extremely subtle.
+
+---
+
+# 39. Animation Language
+
+Every animation:
+
+* 180–500ms UI transitions
+* cinematic globe transitions approximately 700–1200ms
+* ease-out / spring
+* never bouncing excessively
+
+Interaction feeling:
+
+**quiet confidence**
+
+rather than:
+
+**crypto casino**
+
+---
+
+# 40. Mobile UX
+
+Mobile must NOT simply shrink the desktop.
+
+Layout:
+
+```text
+┌─────────────────────────┐
+│ GlobeBid         $18.4K │
+│                         │
+│                         │
+│       [ GLOBE ]         │
+│                         │
+│                         │
+│      ● India            │
+│                         │
+│ ┌─────────────────────┐ │
+│ │ India 🇮🇳           │ │
+│ │ Cursor              │ │
+│ │ $210                │ │
+│ │                     │ │
+│ │ Claim for $215      │ │
+│ └─────────────────────┘ │
+└─────────────────────────┘
+```
+
+Use native-feeling bottom sheets.
+
+Globe always remains visible behind sheet.
+
+---
+
+# 41. Desktop UX
+
+Country details panel floats on the right.
+
+Maximum width:
+
+**380–420px**
+
+Globe stays interactive.
+
+Panel should never occupy half the screen.
+
+---
+
+# 42. Supabase Architecture
+
+Use Supabase for:
+
+### PostgreSQL
+
+* countries
+* brands
+* advertisers
+* bids
+* payments
+* country ownership
+* click events
+* activity
+* webhook events
+
+### Storage
+
+* logos
+* generated share images
+
+### Realtime
+
+Broadcast:
+
+* new bid
+* new leader
+* country takeover
+* global totals
+* live activity
+
+### Auth
+
+Not required for customer MVP.
+
+Use Auth only for internal/admin access initially.
+
+Supabase supports Postgres, Storage, Auth and realtime database subscriptions; exposed tables should use Row Level Security and sensitive writes/service credentials must stay server-side.
+
+---
+
+# 43. Core Database Schema
+
+## countries
+
+```text
+id
+iso2
+iso3
+name
+slug
+centroid_lat
+centroid_lng
+geometry_reference
+current_brand_id
+current_stake
+minimum_next_stake
+claimed_at
+updated_at
+```
+
+---
+
+## brands
+
+```text
+id
+name
+slug
+website_url
+display_url
+tagline
+logo_url
+email
+status
+created_at
+updated_at
+```
+
+Status:
+
+```text
+active
+pending_review
+blocked
+```
+
+---
+
+## advertisers
+
+```text
+id
+email
+name
+created_at
+```
+
+---
+
+## country_stakes
+
+```text
+id
+country_id
+brand_id
+advertiser_id
+total_amount
+created_at
+updated_at
+```
+
+Unique:
+
+```text
+(country_id, brand_id)
+```
+
+---
+
+## bids
+
+Every individual purchase.
+
+```text
+id
+country_id
+brand_id
+advertiser_id
+
+amount_added
+previous_total
+new_total
+
+currency
+
+status
+
+dodo_payment_id
+dodo_checkout_id
+
+created_at
+paid_at
+```
+
+Statuses:
+
+```text
+pending
+processing
+paid
+failed
+cancelled
+refunded
+disputed
+```
+
+---
+
+## ownership_history
+
+```text
+id
+country_id
+brand_id
+previous_brand_id
+winning_stake
+bid_id
+started_at
+ended_at
+```
+
+This powers:
+
+* takeover history
+* analytics
+* emails
+* share cards
+
+---
+
+## clicks
+
+```text
+id
+country_id
+brand_id
+visitor_hash
+referrer
+created_at
+```
+
+---
+
+## payment_webhooks
+
+```text
+id
+webhook_id
+event_type
+payment_id
+payload
+processed_at
+created_at
+```
+
+Unique index:
+
+```text
+webhook_id
+```
+
+---
+
+# 44. Atomic Leader Calculation
+
+Payment activation must run inside a database transaction.
+
+Conceptually:
+
+```text
+BEGIN
+
+lock advertiser/country stake
+
+add payment amount
+
+calculate new total
+
+get highest total stake for country
+
+if leader changed:
+    update current owner
+    create ownership history
+    generate activity event
+
+mark bid paid
+
+COMMIT
+```
+
+This prevents two simultaneous payments from corrupting country ownership.
+
+---
+
+# 45. Public API
+
+### GET globe data
+
+```text
+GET /api/globe
+```
+
+Returns lightweight country state.
+
+```json
+{
+  "IND": {
+    "brand": "...",
+    "logo": "...",
+    "stake": 125
+  }
+}
+```
+
+---
+
+### GET country
+
+```text
+GET /api/countries/IND
+```
+
+Returns:
+
+* current leader
+* minimum bid
+* top advertisers
+* clicks
+* recent takeover
+
+---
+
+### Preview brand
+
+```text
+POST /api/brand/preview
+```
+
+Input:
+
+```text
+URL
+```
+
+Returns:
+
+* title
+* favicon
+* OG image
+* description
+
+---
+
+### Create checkout
+
+```text
+POST /api/checkout
+```
+
+Input:
+
+```text
+country
+brand
+amount
+```
+
+Server:
+
+1. validates URL
+2. calculates valid minimum
+3. creates pending bid
+4. creates Dodo checkout
+5. returns checkout URL/session
+
+---
+
+### Dodo webhook
+
+```text
+POST /api/webhooks/dodo
+```
+
+Private server endpoint.
+
+---
+
+### Click tracking
+
+```text
+POST /api/click
+```
+
+---
+
+# 46. Frontend Architecture
+
+```text
+Next.js
+
+├── GlobeScene
+│   ├── Earth
+│   ├── Countries
+│   ├── CountryLabels
+│   ├── BrandPins
+│   └── Atmosphere
+│
+├── CountryCard
+│
+├── ClaimSheet
+│
+├── CheckoutOverlay
+│
+├── ActivityToast
+│
+├── SearchSheet
+│
+├── LeaderboardSheet
+│
+└── ShareModal
+```
+
+3D:
+
+**Three.js + React Three Fiber**
+
+Country boundaries:
+
+Natural Earth / GeoJSON.
+
+Convert polygons into globe coordinates.
+
+---
+
+# 47. Performance Requirements
+
+The globe must feel immediate.
+
+Targets:
+
+Desktop:
+
+**60 FPS**
+
+Modern mobile:
+
+**45–60 FPS**
+
+First usable interaction:
+
+**<2.5 seconds on good 4G**
+
+Initial JS must not download every logo in full resolution.
+
+Use:
+
+* lazy loading
+* texture atlases
+* compressed images
+* simplified country polygons
+* adaptive device pixel ratio
+* instancing where possible
+
+---
+
+# 48. SEO
+
+Even though the application is one page, country state should be indexable/shareable.
+
+Example metadata:
+
+```text
+India — Owned by Cursor | GlobeBid
+
+Cursor currently controls India with a $245 stake.
+```
+
+Dynamic OG image.
+
+Links:
+
+```text
+/?country=india
+```
+
+Opening link automatically:
+
+1. loads globe
+2. rotates to India
+3. opens India card
+
+---
+
+# 49. Brand Click Behaviour
+
+Clicking a visible brand logo:
+
+First click:
+
+shows brand card.
+
+```text
+Cursor
+
+AI-powered code editor
+
+Owns:
+🇮🇳 India
+🇸🇬 Singapore
+
+$920 total stake
+
+184 clicks
+
+[ Visit Cursor ↗ ]
+```
+
+Outbound link opens new tab.
+
+Track click.
+
+---
+
+# 50. Moderation
+
+Before publishing user-controlled content, protect against:
+
+* pornographic logos
+* hate symbols
+* illegal content
+* malware URLs
+* phishing URLs
+* impersonation
+* misleading domains
+
+Minimum MVP:
+
+URL validation + manual admin moderation/ban controls.
+
+Admin can:
+
+```text
+Hide brand
+Block URL
+Replace logo
+Refund payment
+Disable country
+Review reports
+```
+
+---
+
+# 51. Political / Geographic Disclaimer
+
+Add subtle info modal:
+
+> Country names and boundaries are shown for visualization and advertising purposes only. Geographic borders do not represent political positions or endorsements.
+
+Necessary because disputed territories can create unnecessary product controversy.
+
+---
+
+# 52. Terms / Privacy
+
+The site remains single-page.
+
+Footer:
+
+```text
+Terms · Privacy · Rules · X
+```
+
+Click opens modal rather than navigating away wherever practical.
+
+Payment rule must clearly explain:
+
+> Payments purchase digital advertising placement. Placement duration is not guaranteed because another advertiser may obtain a higher ranking.
+
+---
+
+# 53. Empty-State Launch Strategy
+
+A completely empty globe looks dead.
+
+At launch:
+
+seed 10–20 countries.
+
+Examples:
+
+```text
+USA
+India
+UK
+Germany
+France
+Japan
+Singapore
+Australia
+Canada
+Brazil
+UAE
+Netherlands
+Switzerland
+South Korea
+```
+
+But mark internal seed listings clearly if they are promotional/demo placements.
+
+Other countries:
+
+**Unclaimed · $5**
+
+This creates discoverable bargains.
+
+---
+
+# 54. Scarcity Mechanic
+
+Instead of artificial timers:
+
+show real scarcity.
+
+Examples:
+
+```text
+3 people viewing USA
+```
+
+```text
+India changed hands 4× today
+```
+
+```text
+Only 37 countries remain unclaimed
+```
+
+Only display numbers backed by actual data.
+
+Never fake viewers or activity.
+
+---
+
+# 55. Hot Country Visual
+
+A country recently contested receives a temporary subtle pulse.
+
+Example:
+
+USA changes owner.
+
+For five minutes:
+
+small:
+
+`🔥`
+
+or brighter border.
+
+This directs traffic toward active battles.
+
+---
+
+# 56. Launch Activity Loop
+
+Every takeover creates:
+
+1. realtime animation
+2. activity notification
+3. takeover email
+4. social share card
+5. opportunity for previous owner to reclaim
+6. new content for X
+
+That is the growth engine.
+
+---
+
+# 57. Reference Products — What to Copy Conceptually
+
+## Outbid
+
+Useful pattern:
+
+**price is immediately understandable.**
+
+User sees exactly what purchasing the position costs.
+
+Outbid's interface prominently exposes the current price and gives an immediate "claim" action, which is a major reason the mechanic requires almost no explanation.
+
+---
+
+## Warmap
+
+Useful pattern:
+
+**territory creates emotional ownership.**
+
+Its core proposition is simply that a company controls a country until somebody takes it.
+
+Do not copy its war-themed visual design.
+
+Make ours significantly more premium.
+
+---
+
+## WorldMap
+
+Useful pattern:
+
+**3D Earth makes the concept instantly understandable.**
+
+It also uses accumulated stake, allowing users who lose position to top up instead of discarding their historical contribution.
+
+This should remain.
+
+---
+
+## BrandMyPC / BrandMyFridge
+
+Useful pattern:
+
+The physical visual itself is the inventory.
+
+People immediately understand what they are purchasing.
+
+BrandMyPC presents visual placements directly on the object and makes each slot actionable instead of separating the object from the purchase UI.
+
+Our equivalent:
+
+**Earth itself is the inventory.**
+
+---
+
+# 58. Things We Explicitly Do NOT Build
+
+MVP should NOT contain:
+
+* user profiles
+* follower system
+* comments
+* messaging
+* crypto
+* tokens
+* bidding timers
+* auctions that expire
+* complex categories
+* subscriptions
+* separate dashboard
+* notifications center
+* blog
+* onboarding wizard
+* multiple globe modes
+* social feed
+* achievements
+* teams
+* mobile app
+
+All of these weaken the core concept.
+
+---
+
+# 59. MVP Scope
+
+The first production version requires only:
+
+### Globe
+
+Interactive 3D Earth with approximately 195 selectable countries.
+
+### Country state
+
+Claimed/unclaimed state.
+
+### Brand
+
+URL + logo + name + short description.
+
+### Bidding
+
+Initial $5 claim + cumulative stake.
+
+### Payment
+
+Dodo one-time checkout.
+
+### Backend
+
+Supabase/Postgres.
+
+### Live updates
+
+Supabase Realtime.
+
+### Social proof
+
+Revenue / claimed countries / current viewers.
+
+### Growth
+
+Share takeover.
+
+### Retention
+
+Outbid email.
+
+That is enough.
+
+---
+
+# 60. Success Metrics
+
+Primary:
+
+### Revenue
+
+```text
+Gross advertising spend
+```
+
+### Countries claimed
+
+```text
+claimed / total
+```
+
+### Rebid rate
+
+Percentage of brands that purchase again.
+
+This is arguably the most important product metric.
+
+### Country turnover
+
+Average number of ownership changes.
+
+### Bid conversion
+
+```text
+checkout paid / claim sheet opened
+```
+
+### Share rate
+
+```text
+takeovers shared / takeovers
+```
+
+### Click-through rate
+
+```text
+brand clicks / country impressions
+```
+
+---
+
+# 61. Suggested Launch Targets
+
+First milestone:
+
+```text
+100 paid claims
+```
+
+Second:
+
+```text
+50 countries claimed
+```
+
+Third:
+
+```text
+$1,000 total stake
+```
+
+Critical metric:
+
+```text
+>20% of revenue from repeat bidders
+```
+
+If people reclaim countries, the mechanic is working.
+
+---
+
+# 62. Ideal First-Time User Journey
+
+Visitor lands.
+
+Within:
+
+**0 seconds**
+
+Earth visible.
+
+**2 seconds**
+
+Understands:
+
+> Brands own countries.
+
+**5 seconds**
+
+Spins globe.
+
+**8 seconds**
+
+Clicks India.
+
+**10 seconds**
+
+Sees:
+
+```text
+India
+Owned by Linear
+$45
+
+Claim for $50
+```
+
+**15 seconds**
+
+Clicks Claim.
+
+**20 seconds**
+
+Brand preview generated.
+
+**25 seconds**
+
+Checkout opens.
+
+Payment.
+
+Return.
+
+Earth rotates.
+
+Logo appears.
+
+# You own India.
+
+That moment is the product.
+
+---
+
+# 63. Technical Architecture
+
+```text
+                    ┌──────────────────┐
+                    │      Browser     │
+                    │                  │
+                    │ Next.js + R3F    │
+                    │   3D Globe       │
+                    └────────┬─────────┘
+                             │
+                 ┌───────────┴──────────┐
+                 │                      │
+                 ▼                      ▼
+        ┌─────────────────┐     ┌─────────────────┐
+        │    Supabase     │     │ Next.js Server │
+        │                 │     │                 │
+        │ Postgres        │◄────│ API routes      │
+        │ Realtime        │     │ checkout logic  │
+        │ Storage         │     │ webhook logic   │
+        └────────┬────────┘     └────────┬────────┘
+                 │                       │
+                 │                       ▼
+                 │              ┌────────────────┐
+                 │              │ Dodo Payments  │
+                 │              │                │
+                 │              │ Checkout       │
+                 │              └────────┬───────┘
+                 │                       │
+                 │             payment.succeeded
+                 │                       │
+                 └───────────────────────┘
+```
+
+---
+
+# 64. Security
+
+Never expose:
+
+```text
+DODO_PAYMENTS_API_KEY
+DODO_WEBHOOK_SECRET
+SUPABASE_SECRET_KEY
+SUPABASE_SERVICE_ROLE
+```
+
+Browser receives only the Supabase publishable key with tightly configured RLS.
+
+Sensitive bidding logic remains server-side.
+
+Supabase explicitly warns that secret/service-role credentials bypass RLS and must never be exposed in frontend code.
+
+---
+
+# 65. Critical Backend Rule
+
+Never trust:
+
+```text
+country price
+current owner
+bid minimum
+payment amount
+brand ownership
+```
+
+from frontend input.
+
+The server recalculates everything before creating checkout.
+
+---
+
+# 66. Realtime Behaviour
+
+Subscribe to:
+
+```text
+country_updates
+global_activity
+stats
+```
+
+If someone buys Japan while 400 people are on the website:
+
+every connected globe should update Japan automatically.
+
+Old logo disappears.
+
+New logo appears.
+
+Activity toast:
+
+```text
+Sony just took Japan · $420
+```
+
+No refresh.
+
+Supabase supports subscriptions to Postgres changes for this type of realtime synchronization.
+
+---
+
+# 67. Design North Star
+
+The site should feel like:
+
+**Apple designed a digital Earth and accidentally turned it into an advertising marketplace.**
+
+Not:
+
+**Someone built another Outbid clone.**
+
+The visual hierarchy is:
+
+```text
+EARTH
+↓
+COUNTRY
+↓
+BRAND
+↓
+PRICE
+↓
+CLAIM
+```
+
+Nothing should compete with that hierarchy.
+
+---
+
+# 68. Homepage Copy
+
+Final recommended copy:
+
+# Own a piece of the internet.
+
+**Claim a country. Put your brand on Earth. Stay there until someone wants it more.**
+
+`[ Explore the globe ]`
+
+Small text:
+
+**Countries start at $5.**
+
+---
+
+When country selected:
+
+# India 🇮🇳
+
+**Currently controlled by Cursor**
+
+`$125`
+
+**$130 puts your brand on India.**
+
+`[ Claim India · $130 ]`
+
+---
+
+After purchase:
+
+# India is yours.
+
+**Your logo is now on the world.**
+
+**Until somebody wants it more.**
+
+`[ Share takeover ]`
+
+---
+
+When outbid:
+
+# India was taken.
+
+**Linear just moved ahead of your $125 stake.**
+
+You're still at $125.
+
+**Add $15 to take it back.**
+
+`[ Reclaim India · $15 ]`
+
+---
+
+# 69. MVP Acceptance Criteria
+
+The MVP is ready to launch when:
+
+* Globe renders smoothly on desktop/mobile.
+* Every supported country can be selected.
+* Country selection rotates Earth correctly.
+* Unclaimed countries can be purchased.
+* Existing countries can be outbid.
+* Brand metadata can be entered.
+* Logos upload correctly.
+* Checkout session is server-generated.
+* Dodo webhook signatures are verified.
+* `payment.succeeded` creates a stake exactly once.
+* Simultaneous bids cannot corrupt ownership.
+* Ownership changes appear realtime.
+* Brand logo changes immediately.
+* Outbound clicks are recorded.
+* Social share image is generated.
+* Outbid owner receives email.
+* URLs and brands can be administratively blocked.
+* Terms clearly explain advertising-placement rules.
+* Mobile bottom sheet works correctly.
+* Payment/test webhook flows pass before switching Dodo into live mode.
+
+---
+
+# 70. Final Product Definition
+
+The entire product should be explainable in one sentence:
+
+> **A live 3D Earth where brands pay to control countries, and anyone can take a country by putting more behind it.**
+
+And the entire user experience should reduce to:
+
+# Spin → Pick → Claim → Pay → Take over.
+
+That simplicity is the moat.
+
+Do not add anything until this loop itself is addictive.
