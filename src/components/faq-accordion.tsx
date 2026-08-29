@@ -9,35 +9,26 @@ type FaqAccordionProps = {
   questions: FaqQuestion[];
   openId: string | null;
   onToggle: (id: string, next: boolean) => void;
-  theme: "light" | "dark";
   idPrefix?: string;
   headingLevel?: "h2" | "h3";
 };
 
-const themes = {
-  light: {
-    border: "border-black/8",
-    question: "text-[#111] hover:text-black/65 focus-visible:ring-black/20",
-    answer: "text-black/48",
-    icon: "text-black/35",
-  },
-  dark: {
-    border: "border-white/14",
-    question: "text-white hover:text-white/72 focus-visible:ring-white/60",
-    answer: "text-white/48",
-    icon: "text-white/38",
-  },
-} as const;
+// The product has a single light theme, so this accordion styles for it directly rather than
+// branching on a theme prop nothing ever set to anything else.
+const styles = {
+  border: "border-black/8",
+  question: "text-ink hover:text-black/65 focus-visible:ring-black/20",
+  answer: "text-black/48",
+  icon: "text-black/35",
+};
 
 export function FaqAccordion({
   questions,
   openId,
   onToggle,
-  theme,
   idPrefix = "faq",
   headingLevel = "h3",
 }: FaqAccordionProps) {
-  const styles = themes[theme];
   const Heading = headingLevel;
 
   return (

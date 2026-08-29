@@ -1,11 +1,27 @@
 @import "tailwindcss";
+
+/*
+ * Design tokens — single source of truth for the white/light theme.
+ * Every surface, ink, accent and shadow in the product should reference one
+ * of these instead of a one-off hex value, so the whole UI (landing page,
+ * globe chrome, cards, sheets, FAQ, footer) reads as one consistent system.
+ */
+@theme {
+  --color-ink: #111111;              /* primary text, headings, CTA fills — the one near-black */
+  --color-canvas: #ffffff;           /* page background — pure white, no warm/cream cast */
+  --color-surface-recessed: #f5f5f4; /* recessed neutral surface: globe frame, footer, floating chips */
+  --color-live: #229a5b;             /* the single accent: live status, claimed %, brand flourish */
+  --shadow-soft: 0 14px 34px rgba(17, 17, 17, 0.1);
+  --shadow-elevated: 0 28px 70px rgba(17, 17, 17, 0.12);
+}
+
 :root { color-scheme: light; }
 * { box-sizing: border-box; }
 html, body { width: 100%; min-height: 100%; }
-body { margin: 0; background: #f3f0e8; color: #111; font-family: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
-h1, h2, h3 { color: #080807; text-wrap: balance; }
-button, input, textarea { font: inherit; } button { cursor: pointer; } ::selection { background: #111; color: #fff; }
-.glass { background: rgba(255,255,255,.82); border: 1px solid rgba(10,10,10,.09); box-shadow: 0 24px 80px rgba(35,35,30,.12); backdrop-filter: blur(16px) saturate(120%); -webkit-backdrop-filter: blur(16px) saturate(120%); }
+body { margin: 0; background: var(--color-canvas); color: var(--color-ink); font-family: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+h1, h2, h3 { color: var(--color-ink); text-wrap: balance; }
+button, input, textarea { font: inherit; } button { cursor: pointer; } ::selection { background: var(--color-ink); color: #fff; }
+.glass { background: rgba(255,255,255,.82); border: 1px solid rgba(17,17,17,.08); box-shadow: var(--shadow-elevated); backdrop-filter: blur(16px) saturate(120%); -webkit-backdrop-filter: blur(16px) saturate(120%); }
 .safe-bottom { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
 @keyframes enter { from { opacity: 0; transform: translateY(16px) scale(.98) } to { opacity: 1; transform: none } }
 .enter { animation: enter .35s cubic-bezier(.2,.8,.2,1) both; }

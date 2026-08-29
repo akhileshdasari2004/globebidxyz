@@ -69,7 +69,7 @@ function makeEarthTexture(states: Record<string, CountryState>, tier: Tier) {
 
 function BrandPin({ state, onBrandClick }: { state: CountryState; onBrandClick: (countryCode: string) => void }) {
   const texture = useTexture(state.brand!.logo_url);
-  return <group position={xyz(state.centroid_lng, state.centroid_lat, 2.13)} onClick={(event) => { event.stopPropagation(); onBrandClick(state.iso3); }}><Billboard><mesh><circleGeometry args={[.105, 32]} /><meshBasicMaterial map={texture} transparent toneMapped={false} /></mesh><Html center distanceFactor={8} position={[0, -.18, 0]}><div className="whitespace-nowrap rounded-full border border-black/10 bg-white/85 px-2 py-1 text-[9px] font-medium text-black shadow-lg">{state.brand!.name}</div></Html></Billboard></group>;
+  return <group position={xyz(state.centroid_lng, state.centroid_lat, 2.13)} onClick={(event) => { event.stopPropagation(); onBrandClick(state.iso3); }}><Billboard><mesh><circleGeometry args={[.105, 32]} /><meshBasicMaterial map={texture} transparent toneMapped={false} /></mesh><Html center distanceFactor={8} position={[0, -.18, 0]}><div className="whitespace-nowrap rounded-full border border-black/8 bg-white/85 px-2 py-1 text-[9px] font-medium text-ink shadow-lg">{state.brand!.name}</div></Html></Billboard></group>;
 }
 
 function Earth({ states, selected, onSelect, onBrandClick, tier }: { states: Record<string, CountryState>; selected?: string; onSelect: (iso3: string) => void; onBrandClick: (iso3: string) => void; tier: Tier }) {
@@ -105,7 +105,7 @@ function Earth({ states, selected, onSelect, onBrandClick, tier }: { states: Rec
       <lineSegments geometry={borderGeometry}><lineBasicMaterial color="#171915" transparent opacity={.78} /></lineSegments>
       {selectedLines.map((points, i) => <Line key={`s${i}`} points={points} color="#000000" transparent opacity={1} lineWidth={2.4} />)}
       {Object.values(states).filter((s) => s.brand?.logo_url).map((s) => <BrandPin key={s.iso3} state={s} onBrandClick={onBrandClick} />)}
-      {hover && hover.iso3 !== selected && <Html position={hover.point} center zIndexRange={[12, 0]}><div className="pointer-events-none whitespace-nowrap rounded-2xl border border-black/10 bg-white/90 px-3 py-2 text-xs text-black shadow-xl backdrop-blur-xl"><span className="mr-2">{flag(states[hover.iso3]?.iso2 || "")}</span>{states[hover.iso3]?.name || hover.iso3}<span className="ml-2 text-black/45">{formatHover(states[hover.iso3])}</span></div></Html>}
+      {hover && hover.iso3 !== selected && <Html position={hover.point} center zIndexRange={[12, 0]}><div className="pointer-events-none whitespace-nowrap rounded-2xl border border-black/8 bg-white/90 px-3 py-2 text-xs text-ink shadow-xl backdrop-blur-xl"><span className="mr-2">{flag(states[hover.iso3]?.iso2 || "")}</span>{states[hover.iso3]?.name || hover.iso3}<span className="ml-2 text-black/45">{formatHover(states[hover.iso3])}</span></div></Html>}
     </group>
     <OrbitControls enablePan={false} minDistance={3.95} maxDistance={8} rotateSpeed={.5} zoomSpeed={.65} onStart={interact} />
   </>;

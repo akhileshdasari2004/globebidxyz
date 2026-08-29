@@ -20,7 +20,7 @@ export function FaqFull() {
 
   return (
     <div>
-      <label className="flex items-center gap-3 border-b border-black/10 py-4 text-black/45 focus-within:border-black/30">
+      <label className="flex items-center gap-3 border-b border-black/8 py-4 text-black/45 focus-within:border-black/30">
         <Search className="size-4" aria-hidden="true" />
         <span className="sr-only">Search questions</span>
         <input
@@ -30,7 +30,7 @@ export function FaqFull() {
             setQuery(value);
             if (value.trim().length > 1) analytics.faqSearchUsed({ query_length: value.trim().length });
           }}
-          className="w-full bg-transparent text-sm text-[#111] outline-none placeholder:text-black/28"
+          className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-black/28"
           placeholder="Search questions"
         />
       </label>
@@ -42,7 +42,6 @@ export function FaqFull() {
             <FaqAccordion
               questions={group.questions}
               openId={openId}
-              theme="light"
               idPrefix={`faq-${group.id}`}
               headingLevel="h3"
               onToggle={(id, next) => {
@@ -54,7 +53,7 @@ export function FaqFull() {
         ))}
       </div>
 
-      {!visibleGroups.length && <p className="border-t border-black/10 py-10 text-black/45">No questions match &ldquo;{query}&rdquo;.</p>}
+      {!visibleGroups.length && <p className="border-t border-black/8 py-10 text-black/45">No questions match &ldquo;{query}&rdquo;.</p>}
     </div>
   );
 }
