@@ -18,9 +18,13 @@ export async function POST(request: Request) {
       const { data: applied, error } = await supabase.rpc("process_paid_bid", { p_webhook_id: webhookId, p_event_type: type, p_payment_id: paymentId, p_bid_id: bidId, p_payload: JSON.parse(raw) }); if (error) throw error;
       const result = applied as AppliedBid | null; if (result?.processed) await emitPaidEvents(result, bidId, paymentId);
     } else {
-      const inserted = await supabase.from("payment_webhooks").insert({ webhook_id: webhookId, event_type: type, payment_id: paymentId, payload: JSON.parse(raw), processed_at: new Date().toISOString() });
+      // Explicit ignore-duplicates upsert (same pattern as process_paid_bid's dedup) so a retried
+      // non-succeeded webhook can't re-fire the status update or the paymentFailed analytics event.
+      const { data: insertedRows, error: insertError } = await supabase.from("payment_webhooks").upsert({ webhook_id: webhookId, event_type: type, payment_id: paymentId, payload: JSON.parse(raw), processed_at: new Date().toISOString() }, { onConflict: "webhook_id", ignoreDuplicates: true }).select("id");
+      if (insertError) console.error("payment_webhooks upsert failed", insertError);
+      const isNewEvent = !insertError && (insertedRows?.length ?? 0) > 0;
       const statuses: Record<string, string> = { "payment.failed": "failed", "payment.processing": "processing", "payment.cancelled": "cancelled", "refund.succeeded": "refunded", "dispute.opened": "disputed" };
-      if (bidId && statuses[type]) { await supabase.from("bids").update({ status: statuses[type], dodo_payment_id: paymentId }).eq("id", bidId).neq("status", "paid"); if (type === "payment.failed" && !inserted.error) { const { data: bid } = await supabase.from("bids").select("analytics_distinct_id,country:countries(iso3)").eq("id", bidId).maybeSingle(); const country = Array.isArray(bid?.country) ? bid.country[0] : bid?.country; await serverAnalytics.paymentFailed(bid?.analytics_distinct_id || null, { country_code: country?.iso3 || "unknown", bid_id: bidId, failure_category: "provider_failed" }); } }
+      if (isNewEvent && bidId && statuses[type]) { await supabase.from("bids").update({ status: statuses[type], dodo_payment_id: paymentId }).eq("id", bidId).neq("status", "paid"); if (type === "payment.failed") { const { data: bid } = await supabase.from("bids").select("analytics_distinct_id,country:countries(iso3)").eq("id", bidId).maybeSingle(); const country = Array.isArray(bid?.country) ? bid.country[0] : bid?.country; await serverAnalytics.paymentFailed(bid?.analytics_distinct_id || null, { country_code: country?.iso3 || "unknown", bid_id: bidId, failure_category: "provider_failed" }); } }
     }
     return NextResponse.json({ received: true });
   } catch (error) { console.error(error); return NextResponse.json({ error: "Invalid or unprocessed webhook" }, { status: 401 }); }

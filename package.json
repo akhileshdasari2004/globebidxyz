@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "seed": "node scripts/seed-countries.mjs"
+    "seed": "node --env-file-if-exists=.env.local scripts/seed-countries.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
