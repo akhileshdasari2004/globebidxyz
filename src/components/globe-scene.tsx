@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, ThreeEvent, useFrame } from "@react-three/fiber";
-import { Billboard, Html, Line, OrbitControls, useTexture } from "@react-three/drei";
+import { Billboard, Html, Line, OrbitControls } from "@react-three/drei";
 import { feature, mesh } from "topojson-client";
 import atlas from "world-atlas/countries-110m.json";
 import countries from "i18n-iso-countries";
@@ -67,8 +67,25 @@ function makeEarthTexture(states: Record<string, CountryState>, tier: Tier) {
   const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = tier === "mobile" ? 4 : 8; texture.minFilter = THREE.LinearMipmapLinearFilter; texture.magFilter = THREE.LinearFilter; texture.generateMipmaps = true; return texture;
 }
 
+// drei/R3F's useTexture is suspense-based: on a *rejected* load it doesn't throw synchronously
+// during render (only the pending promise does, for Suspense to catch) — the rejection surfaces
+// as a genuine unhandled promise rejection at the browser level, which no React Error Boundary
+// can catch. A single deleted/unreachable logo URL would otherwise spam the console forever.
+// Loading the texture manually with THREE's own onError callback sidesteps that entirely: a
+// failure just leaves the texture unset and the pin renders nothing, instead of a logo.
+function useSafeTexture(url: string): THREE.Texture | null {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  useEffect(() => {
+    let cancelled = false; let loaded: THREE.Texture | null = null;
+    new THREE.TextureLoader().load(url, (t) => { if (cancelled) { t.dispose(); return; } t.colorSpace = THREE.SRGBColorSpace; loaded = t; setTexture(t); }, undefined, () => { if (!cancelled) console.warn("Brand logo failed to load, skipping pin:", url); });
+    return () => { cancelled = true; loaded?.dispose(); };
+  }, [url]);
+  return texture;
+}
+
 function BrandPin({ state, onBrandClick }: { state: CountryState; onBrandClick: (countryCode: string) => void }) {
-  const texture = useTexture(state.brand!.logo_url);
+  const texture = useSafeTexture(state.brand!.logo_url);
+  if (!texture) return null;
   return <group position={xyz(state.centroid_lng, state.centroid_lat, 2.13)} onClick={(event) => { event.stopPropagation(); onBrandClick(state.iso3); }}><Billboard><mesh><circleGeometry args={[.105, 32]} /><meshBasicMaterial map={texture} transparent toneMapped={false} /></mesh><Html center distanceFactor={8} position={[0, -.18, 0]}><div className="whitespace-nowrap rounded-full border border-black/8 bg-white/85 px-2 py-1 text-[9px] font-medium text-ink shadow-lg">{state.brand!.name}</div></Html></Billboard></group>;
 }
 
@@ -90,7 +107,30 @@ function Earth({ states, selected, onSelect, onBrandClick, tier }: { states: Rec
   }, []);
   useEffect(() => () => borderGeometry.dispose(), [borderGeometry]);
   const selectedLines = useMemo(() => { const f = countryFeatures.find((x) => x.iso3 === selected); return f ? eachRing(f).map((ring) => ring.map(([lng, lat]) => xyz(lng, lat, 2.035))) : []; }, [selected]);
-  useFrame((_, delta) => { idle.current += delta; if (group.current && !active && idle.current > 1.5) group.current.rotation.y += delta * .035; });
+  // Auto-focus: when the selection changes, rotate the globe so that country's centroid faces the
+  // camera. The target angle is a ref, not state — the actual rotation happens frame-by-frame in
+  // useFrame below, exactly like the idle auto-rotate it temporarily takes over from. Depending on
+  // the primitive lat/lng (not the whole `states` object) means this only re-fires when this
+  // country's real position actually changes — including the moment it arrives, replacing the
+  // (0,0) placeholder a URL-preselected country starts with before the initial fetch resolves —
+  // and never on unrelated realtime churn elsewhere on the globe.
+  const focusTarget = useRef<number | null>(null);
+  const selectedCountry = selected ? states[selected] : undefined;
+  const focusLat = selectedCountry?.centroid_lat; const focusLng = selectedCountry?.centroid_lng;
+  useEffect(() => {
+    if (!selected || focusLat == null || focusLng == null || (focusLat === 0 && focusLng === 0)) { focusTarget.current = null; return; }
+    const p = xyz(focusLng, focusLat, 1);
+    focusTarget.current = Math.atan2(p.x, p.z);
+  }, [selected, focusLat, focusLng]);
+  useFrame((_, delta) => {
+    idle.current += delta;
+    if (!group.current) return;
+    if (focusTarget.current !== null) {
+      const current = group.current.rotation.y; let diff = (focusTarget.current - current) % (Math.PI * 2); if (diff > Math.PI) diff -= Math.PI * 2; if (diff < -Math.PI) diff += Math.PI * 2;
+      if (Math.abs(diff) < 0.002) { group.current.rotation.y = focusTarget.current; focusTarget.current = null; }
+      else { group.current.rotation.y = current + diff * Math.min(1, delta * 3); idle.current = 0; }
+    } else if (!active && idle.current > 1.5) group.current.rotation.y += delta * .035;
+  });
   function interact() { dragging.current = true; setActive(true); setHover(undefined); idle.current = 0; window.setTimeout(() => setActive(false), 7000); }
   function pick(e: ThreeEvent<MouseEvent>) { e.stopPropagation(); const { lng, lat } = eventLngLat(e); const country = hitCountry(((lng + 540) % 360) - 180, lat); if (country) onSelect(country.iso3); }
   function move(e: ThreeEvent<PointerEvent>) { idle.current = 0; if (dragging.current) return; const { lng, lat } = eventLngLat(e); const country = hitCountry(((lng + 540) % 360) - 180, lat); if (!country) return setHover(undefined); const point = e.object.worldToLocal(e.point.clone()).normalize().multiplyScalar(2.18); setHover((old) => old?.iso3 === country.iso3 && old.point.distanceTo(point) < .03 ? old : { iso3: country.iso3, point }); }
@@ -130,6 +170,17 @@ export function GlobeScene(props: { states: Record<string, CountryState>; select
     const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.05 });
     observer.observe(el); return () => observer.disconnect();
   }, []);
-  return <div ref={containerRef} className="h-full w-full" onPointerDown={(event) => props.onInteract(event.pointerType === "touch" ? "touch" : "rotate")} onWheel={() => props.onInteract("zoom")}><Canvas flat frameloop={visible ? "always" : "never"} dpr={dpr} camera={{ position: [0, 0, 4.75], fov: 40 }} gl={{ antialias: true, alpha: true, powerPreference: "high-performance", precision: "highp" }}><Earth {...props} tier={tier} /></Canvas></div>;
+  // If the GPU context drops (driver reset, backgrounding on some mobile browsers, tab discard),
+  // calling preventDefault() on the loss event is what actually allows the browser to restore it —
+  // otherwise the loss can be permanent for that canvas. Three/R3F rebuild GPU resources
+  // automatically on "restored"; frameloop just needs to already be running, which it is.
+  function handleCreated({ gl }: { gl: THREE.WebGLRenderer }) {
+    const canvas = gl.domElement;
+    const onLost = (e: Event) => { e.preventDefault(); console.warn("WebGL context lost — will attempt to restore automatically"); };
+    const onRestored = () => console.info("WebGL context restored");
+    canvas.addEventListener("webglcontextlost", onLost, false);
+    canvas.addEventListener("webglcontextrestored", onRestored, false);
+  }
+  return <div ref={containerRef} className="h-full w-full" onPointerDown={(event) => props.onInteract(event.pointerType === "touch" ? "touch" : "rotate")} onWheel={() => props.onInteract("zoom")}><Canvas flat frameloop={visible ? "always" : "never"} dpr={dpr} camera={{ position: [0, 0, 4.75], fov: 40 }} gl={{ antialias: true, alpha: true, powerPreference: "high-performance", precision: "highp" }} onCreated={handleCreated}><Earth {...props} tier={tier} /></Canvas></div>;
 }
 export { flag };

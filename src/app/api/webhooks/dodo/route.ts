@@ -10,13 +10,26 @@ export async function POST(request: Request) {
   try {
     if (!process.env.DODO_PAYMENTS_WEBHOOK_KEY) throw new Error("Webhook key missing");
     const client = new DodoPayments({ bearerToken: process.env.DODO_PAYMENTS_API_KEY || "unused", webhookKey: process.env.DODO_PAYMENTS_WEBHOOK_KEY, environment: (process.env.DODO_PAYMENTS_ENVIRONMENT as "test_mode" | "live_mode") || "test_mode" });
-    type DodoPayload = { type: string; data?: { payment_id?: string; id?: string; metadata?: { bid_id?: string } } };
+    type DodoPayload = { type: string; data?: { payment_id?: string; id?: string; metadata?: { bid_id?: string }; settlement_amount?: number; settlement_currency?: string } };
     const payload = client.webhooks.unwrap(raw, { headers: { "webhook-id": webhookId, "webhook-signature": request.headers.get("webhook-signature") || "", "webhook-timestamp": request.headers.get("webhook-timestamp") || "" } }) as unknown as DodoPayload;
     const type = payload.type as string; const data = payload.data || {}; const paymentId = data.payment_id || data.id || null; const bidId = data.metadata?.bid_id;
     const supabase = getAdminClient();
     if (type === "payment.succeeded" && bidId) {
-      const { data: applied, error } = await supabase.rpc("process_paid_bid", { p_webhook_id: webhookId, p_event_type: type, p_payment_id: paymentId, p_bid_id: bidId, p_payload: JSON.parse(raw) }); if (error) throw error;
-      const result = applied as AppliedBid | null; if (result?.processed) await emitPaidEvents(result, bidId, paymentId);
+      // Defense in depth: a webhook signature only proves the event came from Dodo, not that the
+      // amount we asked for is the amount that was actually charged (e.g. a misconfigured product
+      // that silently ignores our requested amount and charges a fixed price instead — this has
+      // happened). Cross-check the settled USD amount against the bid before crediting any stake.
+      const { data: bidRow } = await supabase.from("bids").select("amount_added").eq("id", bidId).maybeSingle();
+      const expectedCents = bidRow ? Math.round(Number(bidRow.amount_added) * 100) : null;
+      const settledCents = data.settlement_amount;
+      const settlementLooksValid = expectedCents != null && data.settlement_currency === "USD" && typeof settledCents === "number" && settledCents >= expectedCents * 0.9;
+      if (!settlementLooksValid) {
+        console.error("Refusing to apply bid: settled amount does not match the expected bid amount", { bidId, paymentId, expectedCents, settledCents, settledCurrency: data.settlement_currency });
+        await supabase.from("payment_webhooks").upsert({ webhook_id: webhookId, event_type: "payment.succeeded.amount_mismatch", payment_id: paymentId, payload: JSON.parse(raw), processed_at: new Date().toISOString() }, { onConflict: "webhook_id", ignoreDuplicates: true });
+      } else {
+        const { data: applied, error } = await supabase.rpc("process_paid_bid", { p_webhook_id: webhookId, p_event_type: type, p_payment_id: paymentId, p_bid_id: bidId, p_payload: JSON.parse(raw) }); if (error) throw error;
+        const result = applied as AppliedBid | null; if (result?.processed) await emitPaidEvents(result, bidId, paymentId);
+      }
     } else {
       // Explicit ignore-duplicates upsert (same pattern as process_paid_bid's dedup) so a retried
       // non-succeeded webhook can't re-fire the status update or the paymentFailed analytics event.
