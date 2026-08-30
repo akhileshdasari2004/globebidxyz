@@ -86,10 +86,10 @@ function useSafeTexture(url: string): THREE.Texture | null {
 function BrandPin({ state, onBrandClick }: { state: CountryState; onBrandClick: (countryCode: string) => void }) {
   const texture = useSafeTexture(state.brand!.logo_url);
   if (!texture) return null;
-  return <group position={xyz(state.centroid_lng, state.centroid_lat, 2.13)} onClick={(event) => { event.stopPropagation(); onBrandClick(state.iso3); }}><Billboard><mesh><circleGeometry args={[.105, 32]} /><meshBasicMaterial map={texture} transparent toneMapped={false} /></mesh><Html center distanceFactor={8} position={[0, -.18, 0]}><div className="whitespace-nowrap rounded-full border border-black/8 bg-white/85 px-2 py-1 text-[9px] font-medium text-ink shadow-lg">{state.brand!.name}</div></Html></Billboard></group>;
+  return <group position={xyz(state.centroid_lng, state.centroid_lat, 2.13)} onClick={(event) => { event.stopPropagation(); onBrandClick(state.iso3); }}><Billboard><mesh><circleGeometry args={[.105, 32]} /><meshBasicMaterial map={texture} transparent toneMapped={false} /></mesh></Billboard></group>;
 }
 
-function Earth({ states, selected, onSelect, onBrandClick, tier }: { states: Record<string, CountryState>; selected?: string; onSelect: (iso3: string) => void; onBrandClick: (iso3: string) => void; tier: Tier }) {
+function Earth({ states, selected, focusRequest, onSelect, onBrandClick, tier }: { states: Record<string, CountryState>; selected?: string; focusRequest: number; onSelect: (iso3: string) => void; onBrandClick: (iso3: string) => void; tier: Tier }) {
   const group = useRef<THREE.Group>(null); const [active, setActive] = useState(false); const [hover, setHover] = useState<{ iso3: string; point: THREE.Vector3 }>(); const idle = useRef(0); const dragging = useRef(false);
   // Recompute the (expensive) canvas texture only when the set of claimed countries actually
   // changes, never on unrelated realtime pushes or on every country selection.
@@ -114,22 +114,37 @@ function Earth({ states, selected, onSelect, onBrandClick, tier }: { states: Rec
   // country's real position actually changes — including the moment it arrives, replacing the
   // (0,0) placeholder a URL-preselected country starts with before the initial fetch resolves —
   // and never on unrelated realtime churn elsewhere on the globe.
-  const focusTarget = useRef<THREE.Quaternion | null>(null);
+  const focusTarget = useRef<{ rotation: THREE.Quaternion; distance: number } | null>(null);
   const selectedCountry = selected ? states[selected] : undefined;
   const focusLat = selectedCountry?.centroid_lat; const focusLng = selectedCountry?.centroid_lng;
   useEffect(() => {
     if (!selected || focusLat == null || focusLng == null || (focusLat === 0 && focusLng === 0)) { focusTarget.current = null; return; }
     const countryDirection = xyz(focusLng, focusLat, 1).normalize();
-    focusTarget.current = new THREE.Quaternion().setFromUnitVectors(countryDirection, new THREE.Vector3(0, 0, 1));
-  }, [selected, focusLat, focusLng]);
-  useFrame((_, delta) => {
+    // Leave clean visual space for the detail panel: left on desktop and above the bottom sheet
+    // on mobile. The modest camera distance gives a gentle zoom without cropping large countries.
+    const visibleCenter = new THREE.Vector3(tier === "desktop" ? -.34 : 0, tier === "mobile" ? .3 : .03, 1).normalize();
+    const rotation = new THREE.Quaternion().setFromUnitVectors(countryDirection, visibleCenter);
+    // setFromUnitVectors chooses the shortest rotation but does not preserve a map's visual
+    // "north-up" orientation. Correct its twist around the focused country direction so labels,
+    // borders, and the landmass never settle upside down after an animated focus.
+    const latitude = THREE.MathUtils.degToRad(focusLat); const longitude = THREE.MathUtils.degToRad(focusLng);
+    const localNorth = new THREE.Vector3(-Math.sin(latitude) * Math.cos(longitude), Math.cos(latitude), Math.sin(latitude) * Math.sin(longitude));
+    const focusedNorth = localNorth.applyQuaternion(rotation).projectOnPlane(visibleCenter).normalize();
+    const screenUp = new THREE.Vector3(0, 1, 0).projectOnPlane(visibleCenter).normalize();
+    const twistAngle = Math.atan2(visibleCenter.dot(focusedNorth.clone().cross(screenUp)), focusedNorth.dot(screenUp));
+    rotation.premultiply(new THREE.Quaternion().setFromAxisAngle(visibleCenter, twistAngle));
+    focusTarget.current = { rotation, distance: tier === "mobile" ? 4.7 : 4.45 };
+  }, [selected, focusLat, focusLng, focusRequest, tier]);
+  useFrame(({ camera }, delta) => {
     idle.current += delta;
     if (!group.current) return;
     if (focusTarget.current !== null) {
-      group.current.quaternion.slerp(focusTarget.current, Math.min(1, delta * 3));
-      if (group.current.quaternion.angleTo(focusTarget.current) < 0.002) { group.current.quaternion.copy(focusTarget.current); focusTarget.current = null; }
+      const ease = 1 - Math.exp(-delta * 3.8);
+      group.current.quaternion.slerp(focusTarget.current.rotation, ease);
+      camera.position.setLength(THREE.MathUtils.lerp(camera.position.length(), focusTarget.current.distance, ease));
+      if (group.current.quaternion.angleTo(focusTarget.current.rotation) < 0.002 && Math.abs(camera.position.length() - focusTarget.current.distance) < .005) { group.current.quaternion.copy(focusTarget.current.rotation); camera.position.setLength(focusTarget.current.distance); focusTarget.current = null; }
       idle.current = 0;
-    } else if (!active && idle.current > 1.5) group.current.rotation.y += delta * .035;
+    } else if (!active && idle.current > 1.5) group.current.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), delta * .035);
   });
   function interact() { dragging.current = true; setActive(true); setHover(undefined); idle.current = 0; window.setTimeout(() => setActive(false), 7000); }
   function pick(e: ThreeEvent<MouseEvent>) { e.stopPropagation(); const { lng, lat } = eventLngLat(e); const country = hitCountry(((lng + 540) % 360) - 180, lat); if (country) onSelect(country.iso3); }
@@ -148,7 +163,7 @@ function Earth({ states, selected, onSelect, onBrandClick, tier }: { states: Rec
       {Object.values(states).filter((s) => s.brand?.logo_url).map((s) => <BrandPin key={s.iso3} state={s} onBrandClick={onBrandClick} />)}
       {hover && hover.iso3 !== selected && <Html position={hover.point} center zIndexRange={[12, 0]}><div className="pointer-events-none whitespace-nowrap rounded-2xl border border-black/8 bg-white/90 px-3 py-2 text-xs text-ink shadow-xl backdrop-blur-xl"><span className="mr-2">{flag(states[hover.iso3]?.iso2 || "")}</span>{states[hover.iso3]?.name || hover.iso3}<span className="ml-2 text-black/45">{formatHover(states[hover.iso3])}</span></div></Html>}
     </group>
-    <OrbitControls enablePan={false} minDistance={3.95} maxDistance={8} rotateSpeed={.5} zoomSpeed={.65} onStart={interact} />
+    <OrbitControls enablePan={false} minDistance={3.95} maxDistance={8} minPolarAngle={.42} maxPolarAngle={Math.PI - .42} rotateSpeed={.5} zoomSpeed={.65} onStart={interact} />
   </>;
 }
 
@@ -159,7 +174,7 @@ function useDeviceTier(): Tier {
   return tier;
 }
 
-export function GlobeScene(props: { states: Record<string, CountryState>; selected?: string; onSelect: (iso3: string) => void; onInteract: (type: "rotate" | "zoom" | "touch") => void; onBrandClick: (iso3: string) => void }) {
+export function GlobeScene(props: { states: Record<string, CountryState>; selected?: string; focusRequest: number; onSelect: (iso3: string) => void; onInteract: (type: "rotate" | "zoom" | "touch") => void; onBrandClick: (iso3: string) => void }) {
   const tier = useDeviceTier();
   const dpr = useMemo<[number, number]>(() => (tier === "mobile" ? [1, 1.5] : [1, 1.75]), [tier]);
   const containerRef = useRef<HTMLDivElement>(null);

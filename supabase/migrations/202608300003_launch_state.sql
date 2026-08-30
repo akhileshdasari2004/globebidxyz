@@ -28,8 +28,8 @@ begin
   insert into public.brands (id, name, website_url, logo_url, status, created_at, updated_at)
   values (
     v_brand_id,
-    'its me',
-    'https://akhileshdasariportfolio24.vercel.app/',
+    'akhileshYcreate',
+    'https://x.com/akhileshYcreate',
     'https://gzzkotgrvhvwqkigvshi.supabase.co/storage/v1/object/public/logos/pending/fdcdc20e-d612-494b-95b8-b13b3de54a12.png',
     'active',
     v_now,
