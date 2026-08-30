@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     let previous = 0;
     if (brand) { const { data: stake } = await supabase.from("country_stakes").select("total_amount").eq("country_id", country.id).eq("brand_id", brand.id).maybeSingle(); previous = Number(stake?.total_amount || 0); }
     const minimum = getMinimumAddition(Number(country.current_stake), previous); if (input.amount < minimum) return NextResponse.json({ error: `The minimum bid is now $${minimum}. Refresh and try again.` }, { status: 409 });
-    if (!brand) { const created = await supabase.from("brands").insert({ name: input.brand.name, website_url: websiteUrl, tagline: input.brand.tagline || null, logo_url: input.brand.logoUrl, status: "active" }).select("id").single(); if (created.error) throw created.error; brand = created.data; }
+    if (!brand) { const created = await supabase.from("brands").insert({ name: input.brand.name, website_url: websiteUrl, logo_url: input.brand.logoUrl, status: "active" }).select("id").single(); if (created.error) throw created.error; brand = created.data; }
     const bidInsert = await supabase.from("bids").insert({ country_id: country.id, brand_id: brand.id, amount_added: input.amount, previous_total: previous, new_total: previous + input.amount, status: "pending", analytics_distinct_id: input.analyticsDistinctId || null }).select("id").single(); if (bidInsert.error) throw bidInsert.error;
     if (!process.env.DODO_PAYMENTS_API_KEY || !process.env.DODO_PRODUCT_ID) throw new Error("Dodo Payments environment is not configured");
     const client = new DodoPayments({ bearerToken: process.env.DODO_PAYMENTS_API_KEY, environment: (process.env.DODO_PAYMENTS_ENVIRONMENT as "test_mode" | "live_mode") || "test_mode" });

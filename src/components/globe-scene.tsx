@@ -106,29 +106,29 @@ function Earth({ states, selected, onSelect, onBrandClick, tier }: { states: Rec
     const geometry = new THREE.BufferGeometry(); geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3)); return geometry;
   }, []);
   useEffect(() => () => borderGeometry.dispose(), [borderGeometry]);
-  const selectedLines = useMemo(() => { const f = countryFeatures.find((x) => x.iso3 === selected); return f ? eachRing(f).map((ring) => ring.map(([lng, lat]) => xyz(lng, lat, 2.035))) : []; }, [selected]);
+  const selectedLines = useMemo(() => { const f = countryFeatures.find((x) => x.iso3 === selected); return f ? eachRing(f).map((ring) => ring.map(([lng, lat]) => xyz(lng, lat, 2.045))) : []; }, [selected]);
   // Auto-focus: when the selection changes, rotate the globe so that country's centroid faces the
-  // camera. The target angle is a ref, not state — the actual rotation happens frame-by-frame in
+  // camera. The target quaternion is a ref, not state — the actual rotation happens frame-by-frame in
   // useFrame below, exactly like the idle auto-rotate it temporarily takes over from. Depending on
   // the primitive lat/lng (not the whole `states` object) means this only re-fires when this
   // country's real position actually changes — including the moment it arrives, replacing the
   // (0,0) placeholder a URL-preselected country starts with before the initial fetch resolves —
   // and never on unrelated realtime churn elsewhere on the globe.
-  const focusTarget = useRef<number | null>(null);
+  const focusTarget = useRef<THREE.Quaternion | null>(null);
   const selectedCountry = selected ? states[selected] : undefined;
   const focusLat = selectedCountry?.centroid_lat; const focusLng = selectedCountry?.centroid_lng;
   useEffect(() => {
     if (!selected || focusLat == null || focusLng == null || (focusLat === 0 && focusLng === 0)) { focusTarget.current = null; return; }
-    const p = xyz(focusLng, focusLat, 1);
-    focusTarget.current = Math.atan2(p.x, p.z);
+    const countryDirection = xyz(focusLng, focusLat, 1).normalize();
+    focusTarget.current = new THREE.Quaternion().setFromUnitVectors(countryDirection, new THREE.Vector3(0, 0, 1));
   }, [selected, focusLat, focusLng]);
   useFrame((_, delta) => {
     idle.current += delta;
     if (!group.current) return;
     if (focusTarget.current !== null) {
-      const current = group.current.rotation.y; let diff = (focusTarget.current - current) % (Math.PI * 2); if (diff > Math.PI) diff -= Math.PI * 2; if (diff < -Math.PI) diff += Math.PI * 2;
-      if (Math.abs(diff) < 0.002) { group.current.rotation.y = focusTarget.current; focusTarget.current = null; }
-      else { group.current.rotation.y = current + diff * Math.min(1, delta * 3); idle.current = 0; }
+      group.current.quaternion.slerp(focusTarget.current, Math.min(1, delta * 3));
+      if (group.current.quaternion.angleTo(focusTarget.current) < 0.002) { group.current.quaternion.copy(focusTarget.current); focusTarget.current = null; }
+      idle.current = 0;
     } else if (!active && idle.current > 1.5) group.current.rotation.y += delta * .035;
   });
   function interact() { dragging.current = true; setActive(true); setHover(undefined); idle.current = 0; window.setTimeout(() => setActive(false), 7000); }
@@ -143,7 +143,8 @@ function Earth({ states, selected, onSelect, onBrandClick, tier }: { states: Rec
         <sphereGeometry args={[2, segments[0], segments[1]]} /><meshStandardMaterial map={earthTexture} roughness={.92} metalness={0} />
       </mesh>
       <lineSegments geometry={borderGeometry}><lineBasicMaterial color="#171915" transparent opacity={.78} /></lineSegments>
-      {selectedLines.map((points, i) => <Line key={`s${i}`} points={points} color="#000000" transparent opacity={1} lineWidth={2.4} />)}
+      {selectedLines.map((points, i) => <Line key={`lift${i}`} points={points} color="#f5f0d8" transparent opacity={.75} lineWidth={4.2} />)}
+      {selectedLines.map((points, i) => <Line key={`s${i}`} points={points} color="#101710" transparent opacity={1} lineWidth={2.2} />)}
       {Object.values(states).filter((s) => s.brand?.logo_url).map((s) => <BrandPin key={s.iso3} state={s} onBrandClick={onBrandClick} />)}
       {hover && hover.iso3 !== selected && <Html position={hover.point} center zIndexRange={[12, 0]}><div className="pointer-events-none whitespace-nowrap rounded-2xl border border-black/8 bg-white/90 px-3 py-2 text-xs text-ink shadow-xl backdrop-blur-xl"><span className="mr-2">{flag(states[hover.iso3]?.iso2 || "")}</span>{states[hover.iso3]?.name || hover.iso3}<span className="ml-2 text-black/45">{formatHover(states[hover.iso3])}</span></div></Html>}
     </group>
